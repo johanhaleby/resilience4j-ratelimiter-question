@@ -39,7 +39,7 @@ public class AppTest {
         long endTime = new Date().getTime();
 
         assertThat(endTime - startTime)
-                .describedAs("I don't understand why this is not taking longer than this")
+                .describedAs("I don't understand why this is not taking longer")
                 .isGreaterThanOrEqualTo((numberOfRequests / rps) * 1000);
     }
 }
