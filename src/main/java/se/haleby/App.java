@@ -2,6 +2,7 @@ package se.haleby;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.internal.InMemoryRateLimiterRegistry;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +12,7 @@ import java.time.Duration;
 
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static reactor.retry.Retry.anyOf;
 
 /**
  * Hello world!
@@ -44,6 +46,8 @@ public class App {
                 .syncBody("hello world")
                 .retrieve().bodyToMono(String.class);
 
-        return result.transform(RateLimiterOperator.of(rateLimiter));
+        return result
+                .compose(RateLimiterOperator.of(rateLimiter))
+                .retryWhen(anyOf(RequestNotPermitted.class).exponentialBackoff(Duration.ofMillis(50), Duration.ofMillis(100)));
     }
 }
